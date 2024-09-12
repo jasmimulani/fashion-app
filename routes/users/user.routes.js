@@ -1,7 +1,7 @@
 const express = require('express')
 const userRoutes = express.Router()
 const { verifyToken } = require('../../helpers/verifyToken')
-const { verifyUser } = require('../../helpers/verifyUser')
+const {  } = require('../../helpers/verifyUseverifyUserr')
 const { upload } = require('../../helpers/imageUpload')
 const { signup, signIn, updateUser, userProfile, deleteUser, resetPassword, sigout, verifyOtpAndSignup } = require('../../Controller/user/user.controller')
 
