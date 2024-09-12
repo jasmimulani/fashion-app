@@ -1,13 +1,12 @@
 const User = require('../../model/user.model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { verifyOTP } = require('../../helpers/opt_verify')
 const { sendOtpEmail } = require('../../helpers/nodemailer')
 const { generateOTP, otpExpiresIn } = require('../../helpers/opt_genreator')
 
 exports.signup = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role, profileImage } = req.body
+        let { firstName, lastName, email, password, role, profileImage } = req.body;
         let user = await User.findOne({ email: email, isDelete: false });
         if (user) {
             return res.status(400).json({ message: 'User already registered.' });
@@ -20,16 +19,23 @@ exports.signup = async (req, res) => {
         if (req.file) {
             imagePath = req.file.path.replace(/\\/g, "/");
         }
-        const hashPassword = await bcrypt.hash(req.body.password, 10);
-        await sendOtpEmail(otp);
+
+        const hashPassword = await bcrypt.hash(password, 10);
+        const hashotp = await bcrypt.hash(otp, 10);
+        console.log(hashotp)
+        await sendOtpEmail(email, otp);
+
         user = await User.create({
-            firtName: firstName,
+            firstName: firstName,
             lastName: lastName,
             email: email,
             role: role,
             password: hashPassword,
             profileImage: imagePath,
+            otp: hashotp,
+            otpExpires
         });
+
         res.status(201).json({ message: 'OTP sent to your email. Please verify to complete registration.' });
     } catch (err) {
         console.error(err);
@@ -37,26 +43,22 @@ exports.signup = async (req, res) => {
     }
 };
 
-exports.verifyotpAndSignup = async (req, res) => {
+exports.verifyOtpAndSignup = async (req, res) => {
     try {
-        // const { email, otp } = req.body;
-
-        const user = await User.findOne({email: req.body.email, isDelete: false });
+        const user = await User.findOne({ email: req.body.email, isDelete: false });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
+        const compareOtp = await bcrypt.compare(req.body.otp, user.otp)
+        // console.log(compareOtp)
 
-        if (!verifyOTP(req.body.otp, user.otp, user.otpExpires)) {
+        const currentTime = new Date();
+        if (!compareOtp || user.otpExpires < currentTime) {
             return res.status(400).json({ message: 'Invalid or expired OTP.' });
         }
 
-        user.isVerified = true;
-        user.otp = undefined;
-        user.otpExpires = undefined;
-
-        await user.save(); // Ensure the user document is saved after updating
-
-        // const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRATE);
+        console.log(token);
 
         res.status(200).json({ message: 'User registered successfully.', token });
     } catch (err) {
@@ -65,12 +67,11 @@ exports.verifyotpAndSignup = async (req, res) => {
     }
 };
 
-
 exports.signIn = async (req, res) => {
     try {
-        let user = await User.findOne({ email: req.body.email,isDelete: false })
+        let user = await User.findOne({ email: req.body.email, isDelete: false })
         if (!user) {
-            return rea.json({ message: 'User Not found...' })
+            return res.json({ message: 'User Not found...' })
         }
         let comparePassword = await bcrypt.compare(req.body.password, user.password)
         if (!comparePassword) {
@@ -88,7 +89,7 @@ exports.signIn = async (req, res) => {
 
 exports.userProfile = async (req, res) => {
     try {
-        let user = await User.findOne({ _id: req.user._id })
+        let user = await User.findOne({ _id:req.user._id })
         res.status(200).json({ message: "Show user profile", user })
         //   res.json(req.user)
     }

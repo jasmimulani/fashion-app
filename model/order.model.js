@@ -21,7 +21,7 @@ const orderSchema = new mongoose.Schema({
     }],
     subTotal:{
         type:Number,
-        required:true
+        // required:true
     },
     deliveryAddress: {
         city: {
@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
         },
         homeNumber:{
             type:String,
-            require:true
+            // require:true
         }
       },
       isDeleted: {
