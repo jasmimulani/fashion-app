@@ -24,7 +24,7 @@ app.listen(port, () => {
     mongoose
        .connect(process.env.MONGO_URL)
        .then(()=>{
-        console.log('Database Connection established sucess...');
+        console.log('Database Connection sucessfully...');
        })
        .catch((err) => console.log(err))
     console.log(`server start at http://localhost:${port}`);
