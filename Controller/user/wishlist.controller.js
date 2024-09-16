@@ -1,3 +1,4 @@
+
 const Product = require('../../model/product.model');
 const Wishlist = require('../../model/wishlist.model'); // Capitalized for consistency
 const messages = require('../../helpers/messge')
@@ -48,5 +49,3 @@ exports.deleteWishlist = async (req, res) => {
         res.status(500).json({ message:  messages.INTERNAL_SERVER_ERROR  });
     }
 };
-
-
