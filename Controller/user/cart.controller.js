@@ -2,17 +2,24 @@ const Cart = require('../../model/cart.model')
 const Product = require('../../model/product.model')
 const messages = require('../../helpers/messge')
 
+const ProductService = require('../../services/productService');
+const productService = new ProductService();
+
+
+const Cartservice = require('../../services/cartServices')
+const cartservice = new Cartservice();
+
 exports.addCart = async (req, res) => {
     try {
         const { product, quantity } = req.body;
         const userId = req.user._id;
 
-        let products = await Product.findById(product);
+        let products = await productService.getProductById(product);
 
         if (!products) {
             return res.json({ message: messages.PRODUCT_NOT_FOUND });
         }
-        let cart = await Cart.findOne({
+        let cart = await cartservice.getCart({
             product: product,
             user: userId,
         });
@@ -21,7 +28,7 @@ exports.addCart = async (req, res) => {
             return res.json({ message: messages.CART_ALREADY_EXIST });
         }
 
-        cart = await Cart.create({
+        cart = await cartservice.addNewCart({
             product: product,
             user: userId,
             quantity: quantity,
@@ -39,7 +46,7 @@ exports.addCart = async (req, res) => {
 
 exports.getAllCart = async (req, res) => {
     try {
-        let cart = await Cart.find({ user: req.user._id, isDelete: false })
+        let cart = await cartservice.getCarts({ user: req.user._id, isDelete: false })
         if (!cart) {
             return res.json({ message: messages.CART_NOT_FOUND })
         }
@@ -53,7 +60,7 @@ exports.getAllCart = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
     try {
-        let cart = await Cart.findOne({ _id: req.query.cartId, isDelete: false });
+        let cart = await cartservice.getCart({ _id: req.query.cartId, isDelete: false });
 
         if (!cart) {
             return res.status(404).json({ message: messages.CART_NOT_FOUND });
@@ -61,7 +68,7 @@ exports.updateCart = async (req, res) => {
         let additionalQuantity = req.body.quantity || 1;
         let newQuantity = cart.quantity + additionalQuantity;
 
-        cart = await Cart.findByIdAndUpdate(cart._id, { $set: { quantity: newQuantity } }, { new: true });
+        cart = await cartservice.updateCart(cart._id, { $set: { quantity: newQuantity } }, { new: true });
 
         res.status(202).json({ cart, message: messages.CART_UPDATED });
     }
@@ -73,11 +80,11 @@ exports.updateCart = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
     try {
-        let cart = await Cart.findOne({ _id: req.query.cartId, isDelete: false })
+        let cart = await cartservice.getCart({ _id: req.query.cartId, isDelete: false })
         if (!cart) {
             return res.status(404).json({ message: messages.CART_NOT_FOUND })
         }
-        cart = await Cart.findByIdAndUpdate(cart._id, { isDelete: true }, { new: true })
+        cart = await cartservice.updateCart(cart._id, { isDelete: true }, { new: true })
         res.status(200).json({ message: messages.CART_DELETE })
     }
     catch (err) {

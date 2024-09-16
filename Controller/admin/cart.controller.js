@@ -1,9 +1,12 @@
 const Cart = require('../../model/cart.model')
 const messages = require('../../helpers/messge')
 
+const CartService = require('../../services/cartServices')
+const cartservice = new CartService();
+
 exports.getCart = async (req, res) => {
     try {
-        let cart = await Cart.findById({_id:req.query.cartId, isDelete:false})
+        let cart = await cartservice.getCartById({_id:req.query.cartId, isDelete:false})
         if (!cart) {
             return res.json({ message: messages.CART_NOT_FOUND })
         }

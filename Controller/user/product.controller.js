@@ -2,9 +2,13 @@ const Product = require('../../model/product.model')
 const messages = require('../../helpers/messge')
 
 
+const ProductServices = require('../../services/productService')
+const productService = new ProductServices();
+
+
 exports.getAllProduct = async (req, res) => {
     try {
-        let product = await Product.find({ isDelete: false })
+        let product = await productService.getProducts({ isDelete: false })
         if (!product) {
             return res.json({ message:  messages. PRODUCT_NOT_FOUND })
         }
@@ -18,7 +22,7 @@ exports.getAllProduct = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
     try {
-        let product = await Product.findById(req.params.id)
+        let product = await productService.getProductById(req.params.id)
         if (!product) {
             return res.json({ message:  messages. PRODUCT_NOT_FOUND })
         }
